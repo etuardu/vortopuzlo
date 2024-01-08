@@ -121,14 +121,35 @@ export default {
           tile_el.dataset.index,
           that.tiles[dragData.index]
         )
-
         that.fridge.splice(
           tile_el.dataset.index,
           0,
           that.tiles[dragData.index]
         )
       }
+    })
 
+    cupboard_el.addEventListener('dragover', e => {
+      e.preventDefault()
+    })
+    cupboard_el.addEventListener('drop', e => {
+      // tile dropped from the fridge into the cupboard:
+      // remove the tile
+
+      let dragData
+      try {
+        dragData = JSON.parse(
+          e.dataTransfer.getData("text")
+        )
+      } catch {
+        return
+      }
+      if (dragData.action === 'move') {
+        that.fridge.splice(
+          dragData.index,
+          1
+        )
+      }
     })
   },
   methods: {
@@ -155,6 +176,7 @@ export default {
   background-color: transparent;
   border-color: transparent;
   border-left-color: #cccccc;
+  width: 3em;
 }
 .word-tile {
   border-top: 0;
