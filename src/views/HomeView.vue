@@ -30,6 +30,7 @@
 <script>
 export default {
   data() { return {
+    current_drag_tile: null,
     tiles: [
       { value: 'mal', eo: 'kontraŭo' },
       { value: 'san', eo: 'medicina bonfarto' },
@@ -40,10 +41,6 @@ export default {
       { value: 'o', eo: 'substantivo' },
     ],
     fridge: [
-      { value: 'san', eo: 'medicina bonfarto' },
-      { value: 'in', eo: 'naskipova genro' },
-      { value: 'estr', eo: 'ĉefo' },
-      { value: 'o', eo: 'substantivo' },
     ],
   }},
   mounted() {
@@ -54,6 +51,7 @@ export default {
     fridge_el.addEventListener('dragenter', e => {
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
+      if (tile_el === that.current_drag_tile) return
       tile_el.classList.add('over')
     })
     fridge_el.addEventListener('dragleave', e => {
@@ -68,6 +66,8 @@ export default {
     fridge_el.addEventListener('dragstart', e => {
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
+      that.current_drag_tile = tile_el
+      console.log(that.current_drag_tile)
       tile_el.classList.add('invisible')
       e.dataTransfer.dropEffect = "move"
       e.dataTransfer.setData("text", JSON.stringify({
@@ -77,6 +77,7 @@ export default {
     })
 
     fridge_el.addEventListener('dragend', e => {
+      that.current_drag_tile = null
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
       tile_el.classList.remove('invisible')
@@ -168,23 +169,26 @@ export default {
   padding: .5em .5em;
   display: inline-block;
   text-transform: uppercase;
-  font-size: 18px;
-  background-color: #dddddd;
-  border: 2px solid #cccccc;
+  font-size: 24px;
+  background-color: #ddd;
 }
 .word-tile[data-ghost='true'] {
   background-color: transparent;
   border-color: transparent;
-  border-left-color: #cccccc;
+  border-left-color: #fff;
   width: 3em;
+}
+.word-tile[data-ghost='true']:first-child {
+  border-left-color: #ddd;
 }
 .word-tile {
   border-top: 0;
   border-bottom: 0;
-  border-right: 2px solid transparent;
+  border-right: 5px solid transparent;
+  border-left: 5px solid #fff;
 }
 .word-tile.over {
-  border-left: 2px solid black;
+  border-left: 5px solid black !important;
 }
 .invisible {
   opacity: .25;
@@ -195,5 +199,8 @@ export default {
 }
 .fridge {
   margin-top: 50px;
+}
+.cupboard, .fridge {
+  margin: 50px;
 }
 </style>
