@@ -2,15 +2,21 @@
   <div>
     <div class="cupboard" ref="cupboard">
       <div
-        class="tile"
-        v-for="(tile, index) in tiles"
-        :key="tile.value"
-        draggable="true"
-        :data-value="tile.value"
-        :data-index="index"
-        :data-explanation="tile.eo"
+        class="drawer"
+        v-for="type in ['prefix', 'root', 'suffix', 'ending']"
+        :key="type"
       >
-        {{ tile.value }}
+        <div
+          class="tile"
+          v-for="tile in indexed_tiles_by_type[type]"
+          :key="tile.value"
+          draggable="true"
+          :data-value="tile.value"
+          :data-index="tile.index"
+          :data-explanation="tile.it"
+        >
+          {{ tile.value }}
+        </div>
       </div>
     </div>
     <div class="fridge" ref="fridge">
@@ -22,7 +28,7 @@
         :draggable="!!tile.value"
         :data-value="tile.value"
         :data-index="index"
-        :data-explanation="tile.eo"
+        :data-explanation="tile.it"
       >
         {{ tile.value || '&nbsp;' }}
       </div>
@@ -34,17 +40,55 @@ export default {
   data() { return {
     current_drag_tile: null,
     tiles: [
-      { value: 'mal', eo: 'kontraŭo' },
-      { value: 'san', eo: 'medicina bonfarto' },
-      { value: 'ul', eo: 'individuo' },
-      { value: 'ej', eo: 'loko' },
-      { value: 'estr', eo: 'ĉefo' },
-      { value: 'in', eo: 'naskipova genro' },
-      { value: 'o', eo: 'substantivo' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+      { type: 'prefix', value: 'mal', it: 'Contrario' },
+
+      { type: 'suffix', value: 'in', it: 'Femminile' },
+      { type: 'suffix', value: 'ej', it: 'Luogo' },
+      { type: 'suffix', value: 'estr', it: 'Capo' },
+      { type: 'suffix', value: 'ul', it: 'Individuo' },
+      { type: 'suffix', value: 'ul', it: 'Individuo' },
+      { type: 'suffix', value: 'ul', it: 'Individuo' },
+      { type: 'suffix', value: 'ul', it: 'Individuo' },
+      { type: 'suffix', value: 'ul', it: 'Individuo' },
+
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+      { type: 'root',   value: 'san', it: 'Salute' },
+
+      { type: 'ending', value: 'o', it: 'Sostantivo' },
+      { type: 'ending', value: 'a', it: 'Aggettivo' },
+      { type: 'ending', value: 'e', it: 'Avverbio' },
+      { type: 'ending', value: 'i', it: 'Verbo (infinito)' },
     ],
     fridge: [
     ],
   }},
+  computed: {
+    indexed_tiles_by_type(type) {
+      const ret = {}
+      for (let i=0; i<this.tiles.length; i++) {
+        const tile = this.tiles[i]
+        ret[tile.type] = [
+          ...(ret[tile.type] ?? []),
+          { index: i, ...tile }
+        ]
+      }
+      return ret
+    },
+  },
   mounted() {
     const fridge_el = this.$refs['fridge']
     const cupboard_el = this.$refs['cupboard']
@@ -70,7 +114,7 @@ export default {
       if (!tile_el) return
       that.current_drag_tile = tile_el
       console.log(that.current_drag_tile)
-      tile_el.classList.add('invisible')
+      tile_el.classList.add('dragging')
       e.dataTransfer.effectAllowed = "move"
       e.dataTransfer.setData("text", JSON.stringify({
         action: 'move',
@@ -82,17 +126,24 @@ export default {
       that.current_drag_tile = null
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
-      tile_el.classList.remove('invisible')
+      tile_el.classList.remove('dragging')
     })
 
     cupboard_el.addEventListener('dragstart', e => {
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
+      tile_el.classList.add('dragging')
       e.dataTransfer.effectAllowed = "copy"
       e.dataTransfer.setData("text", JSON.stringify({
         action: 'add',
         index: tile_el.dataset.index,
       }));
+    })
+    cupboard_el.addEventListener('dragend', e => {
+      that.current_drag_tile = null
+      const tile_el = e.target.closest('.tile')
+      if (!tile_el) return
+      tile_el.classList.remove('dragging')
     })
 
     fridge_el.addEventListener('drop', e => {
@@ -175,7 +226,7 @@ export default {
   background-color: #ddd;
   position: relative;
 }
-.tile:not([data-ghost='true']):hover::after {
+.tile:not(.dragging):not([data-ghost='true']):hover::after {
   position: absolute;
   content: attr(data-explanation);
   display: block;
@@ -208,12 +259,18 @@ export default {
 .word-tile.over {
   border-left: 5px solid black !important;
 }
-.invisible {
+.fridge .dragging {
   opacity: .25;
 }
+.drawer .tile {
+  margin: .1em;
+}
+.drawer {
+  overflow-y: scroll;
+}
 .cupboard {
-  display: flex;
-  gap: 1em;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr auto;
 }
 .fridge {
   margin-top: 50px;
