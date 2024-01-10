@@ -14,6 +14,7 @@
           :data-value="tile.value"
           :data-index="tile.index"
           :data-explanation="tile.it"
+          :title="tile.it"
         >
           {{ tile.value }}
         </div>
@@ -29,9 +30,13 @@
         :data-value="tile.value"
         :data-index="index"
         :data-explanation="tile.it"
+        :title="tile.it"
       >
         {{ tile.value || '&nbsp;' }}
       </div>
+    </div>
+    <div class="translation">
+      {{ translation }}
     </div>
   </div>
 </template>
@@ -73,11 +78,20 @@ export default {
       { type: 'ending', value: 'e', it: 'Avverbio' },
       { type: 'ending', value: 'i', it: 'Verbo (infinito)' },
     ],
+    dictionary: {
+      it: {
+        'sano': 'salute',
+        'malsano': 'malattia',
+        'malsanulo': 'malato',
+        'malsanulino': 'malata',
+        'malsanulejo': 'ospedale',
+      }
+    },
     fridge: [
     ],
   }},
   computed: {
-    indexed_tiles_by_type(type) {
+    indexed_tiles_by_type() {
       const ret = {}
       for (let i=0; i<this.tiles.length; i++) {
         const tile = this.tiles[i]
@@ -88,6 +102,12 @@ export default {
       }
       return ret
     },
+    fridge_word() {
+      return this.fridge.map(t => t.value).join("")
+    },
+    translation() {
+      return this.dictionary['it'][this.fridge_word]
+    }
   },
   mounted() {
     const fridge_el = this.$refs['fridge']
@@ -226,6 +246,7 @@ export default {
   background-color: #ddd;
   position: relative;
 }
+/*
 .tile:not(.dragging):not([data-ghost='true']):hover::after {
   position: absolute;
   content: attr(data-explanation);
@@ -240,6 +261,7 @@ export default {
   left: .5em;
   padding: .5em;
 }
+*/
 
 .word-tile[data-ghost='true'] {
   background-color: transparent;
@@ -267,6 +289,7 @@ export default {
 }
 .drawer {
   overflow-y: scroll;
+  max-height: 50vh;
 }
 .cupboard {
   display: grid;
@@ -276,6 +299,11 @@ export default {
   margin-top: 50px;
 }
 .cupboard, .fridge {
-  margin: 50px;
+  margin: 20px;
+}
+.translation {
+  margin: 20px;
+  text-transform: capitalize;
+  font-size: 18px;
 }
 </style>
