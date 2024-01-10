@@ -8,6 +8,7 @@
         draggable="true"
         :data-value="tile.value"
         :data-index="index"
+        :data-explanation="tile.eo"
       >
         {{ tile.value }}
       </div>
@@ -21,6 +22,7 @@
         :draggable="!!tile.value"
         :data-value="tile.value"
         :data-index="index"
+        :data-explanation="tile.eo"
       >
         {{ tile.value || '&nbsp;' }}
       </div>
@@ -69,7 +71,7 @@ export default {
       that.current_drag_tile = tile_el
       console.log(that.current_drag_tile)
       tile_el.classList.add('invisible')
-      e.dataTransfer.dropEffect = "move"
+      e.dataTransfer.effectAllowed = "move"
       e.dataTransfer.setData("text", JSON.stringify({
         action: 'move',
         index: tile_el.dataset.index,
@@ -86,7 +88,7 @@ export default {
     cupboard_el.addEventListener('dragstart', e => {
       const tile_el = e.target.closest('.tile')
       if (!tile_el) return
-      e.dataTransfer.dropEffect = "copy"
+      e.dataTransfer.effectAllowed = "copy"
       e.dataTransfer.setData("text", JSON.stringify({
         action: 'add',
         index: tile_el.dataset.index,
@@ -171,7 +173,23 @@ export default {
   text-transform: uppercase;
   font-size: 24px;
   background-color: #ddd;
+  position: relative;
 }
+.tile:not([data-ghost='true']):hover::after {
+  position: absolute;
+  content: attr(data-explanation);
+  display: block;
+  height: fit-content;
+  text-transform: initial;
+  font-size: initial;
+  border: 1px solid black;
+  background: #fff;
+  z-index: 99;
+  top: calc(100% - .5em);
+  left: .5em;
+  padding: .5em;
+}
+
 .word-tile[data-ghost='true'] {
   background-color: transparent;
   border-color: transparent;
