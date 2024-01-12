@@ -45,42 +45,26 @@ export default {
   data() { return {
     current_drag_tile: null,
     tiles: [
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
-      { type: 'prefix', value: 'mal', it: 'Contrario' },
+    /*
       { type: 'prefix', value: 'mal', it: 'Contrario' },
 
       { type: 'suffix', value: 'in', it: 'Femminile' },
       { type: 'suffix', value: 'ej', it: 'Luogo' },
       { type: 'suffix', value: 'estr', it: 'Capo' },
       { type: 'suffix', value: 'ul', it: 'Individuo' },
-      { type: 'suffix', value: 'ul', it: 'Individuo' },
-      { type: 'suffix', value: 'ul', it: 'Individuo' },
-      { type: 'suffix', value: 'ul', it: 'Individuo' },
-      { type: 'suffix', value: 'ul', it: 'Individuo' },
 
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
-      { type: 'root',   value: 'san', it: 'Salute' },
       { type: 'root',   value: 'san', it: 'Salute' },
 
       { type: 'ending', value: 'o', it: 'Sostantivo' },
       { type: 'ending', value: 'a', it: 'Aggettivo' },
       { type: 'ending', value: 'e', it: 'Avverbio' },
       { type: 'ending', value: 'i', it: 'Verbo (infinito)' },
+    */
     ],
     dictionary: {
       it: {
-        'sano': 'Salute',
+        /*
+        "san'o": 'Salute',
         'sana': 'Sano',
         'sanulo': 'Sano (sost.)',
         'sanulino': 'Sano (f., sost.)',
@@ -101,6 +85,7 @@ export default {
         'male': 'Contrariamente',
         'estri': 'Dirigere',
         'sane': 'In modo sano, salubremente'
+        */
       }
     },
     fridge: [
@@ -119,10 +104,24 @@ export default {
       return ret
     },
     fridge_word() {
-      return this.fridge.map(t => t.value).join("")
+      return this.fridge.map(t => t.value).join("'")
     },
     translation() {
       return this.dictionary['it'][this.fridge_word]
+    }
+  },
+  async created() {
+    this.tiles = (await this.read_gsheet('vorteroj')).slice(
+      1 // skip heading
+    ).map(i => ({
+      type: {'prefikso': 'prefix', 'sufikso': 'suffix', 'radiko': 'root', 'finaĵo': 'ending'}[i[0]],
+      value: i[1],
+      it: i[2]
+    }) )
+    this.dictionary = { it:
+      Object.fromEntries((await this.read_gsheet('tradukoj')).slice(
+        1 // skip heading
+      ))
     }
   },
   mounted() {
@@ -249,7 +248,18 @@ export default {
       const src = arr.splice(src_i, 1)
       if (src_i < dst_i) dst_i--
       arr.splice(dst_i, 0, src[0])
-    }
+    },
+    async read_gsheet(sheet_name) {
+      const doc_id = '1yeMoKfNRDUc8BzWSf_-54oBqmzCnOtL-nztDLgWCoTY'
+      const url = (doc_id, sheet_name) => `https://docs.google.com/spreadsheets/d/${doc_id}/gviz/tq?tqx=out:json&sheet=${sheet_name}`
+      const response = await (await fetch(url(doc_id, sheet_name))).text()
+      return JSON.parse(
+        response.slice(
+          response.indexOf("{"),
+          response.lastIndexOf("}") + 1
+        )
+      ).table.rows.map(e=>e.c.map(e=>e.v))
+    },
   }
 }
 </script>
