@@ -313,6 +313,9 @@ export default {
 }
 .fridge {
   margin-top: 50px;
+  overflow-x: auto;
+  padding-bottom: 3px;
+  display: flex;
 }
 .cupboard, .fridge {
   margin: 20px;
@@ -320,5 +323,18 @@ export default {
 .translation {
   margin: 20px;
   font-size: 26px;
+}
+
+@media (max-width: 800px){
+  .cupboard {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
+    gap: 5px;
+  }
+  .drawer {
+    overflow-y: initial;
+    overflow-x: auto;
+    display: flex;
+  }
 }
 </style>
