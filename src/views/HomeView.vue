@@ -80,11 +80,27 @@ export default {
     ],
     dictionary: {
       it: {
-        'sano': 'salute',
-        'malsano': 'malattia',
-        'malsanulo': 'malato',
-        'malsanulino': 'malata',
-        'malsanulejo': 'ospedale',
+        'sano': 'Salute',
+        'sana': 'Sano',
+        'sanulo': 'Sano (sost.)',
+        'sanulino': 'Sano (f., sost.)',
+        'malsano': 'Malattia',
+        'malsana': 'Malato (agg.)',
+        'malsani': 'Essere malato',
+        'malsanulo': 'Malato (sost.)',
+        'malsanulino': 'Malata (sost.)',
+        'malsanulejo': 'Ospedale',
+        'ulo': 'Tizio',
+        'malsanulejestro': "Direttore dell'ospedale",
+        'malsanulejestrino': "Direttrice dell'ospedale",
+        'estro': 'Capo',
+        'estrino': 'Capo (f.)',
+        'ejo': 'Posto',
+        'malo': 'Contrario',
+        'mala': 'Opposto',
+        'male': 'Contrariamente',
+        'estri': 'Dirigere',
+        'sane': 'In modo sano, salubremente'
       }
     },
     fridge: [
@@ -303,7 +319,6 @@ export default {
 }
 .translation {
   margin: 20px;
-  text-transform: capitalize;
-  font-size: 18px;
+  font-size: 26px;
 }
 </style>
