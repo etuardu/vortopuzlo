@@ -22,17 +22,21 @@
     </div>
     <div class="fridge" ref="fridge">
       <div
-        class="tile word-tile"
+        class="slot"
         v-for="(tile, index) in [ ...fridge, { value: '' } ]"
         :key="`${tile.value}-${index}`"
-        :data-ghost="!tile.value"
-        :draggable="!!tile.value"
-        :data-value="tile.value"
-        :data-index="index"
-        :data-explanation="tile.it"
-        :title="tile.it"
       >
-        {{ tile.value || '&nbsp;' }}
+        <div
+          class="tile word-tile"
+          :data-ghost="!tile.value"
+          :draggable="!!tile.value"
+          :data-value="tile.value"
+          :data-index="index"
+          :data-explanation="tile.it"
+          :title="tile.it"
+        >
+          {{ tile.value || '&nbsp;' }}
+        </div>
       </div>
     </div>
     <div class="translation">
@@ -130,16 +134,23 @@ export default {
     const that = this
 
     fridge_el.addEventListener('dragenter', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
+      const slot_el = e.target.closest('.slot')
+      if (!slot_el) return
+      console.log("dragenter slot", slot_el.innerText)
+      const tile_el = slot_el.querySelector('.tile')
       if (tile_el === that.current_drag_tile) return
-      tile_el.classList.add('over')
+      slot_el.classList.add('over')
     })
+
     fridge_el.addEventListener('dragleave', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      tile_el.classList.remove('over')
+      const slot_el = e.target.closest('.slot')
+      if (!slot_el) return
+      console.log("dragleave slot", slot_el.innerText)
+      const tile_el = slot_el.querySelector('.tile')
+      if (tile_el === that.current_drag_tile) return
+      slot_el.classList.remove('over')
     })
+
     fridge_el.addEventListener('dragover', e => {
       e.preventDefault()
     })
@@ -182,9 +193,11 @@ export default {
     })
 
     fridge_el.addEventListener('drop', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      tile_el.classList.remove('over')
+      const slot_el = e.target.closest('.slot')
+      if (!slot_el) return
+      slot_el.classList.remove('over')
+
+      const tile_el = slot_el.querySelector('.tile')
 
       let dragData
       try {
@@ -264,14 +277,24 @@ export default {
 }
 </script>
 <style scoped>
+
 .tile {
-  padding: .5em .5em;
   display: inline-block;
   text-transform: uppercase;
   font-size: 24px;
-  background-color: #ddd;
   position: relative;
+  padding: .5em;
+  background: #ddd;
+  margin: .1em;
+  border-radius: 4px;
+  box-shadow: 0 4px 0 #ccc;
 }
+
+.slot {
+  display: flex;
+}
+
+
 /*
 .tile:not(.dragging):not([data-ghost='true']):hover::after {
   position: absolute;
@@ -290,22 +313,26 @@ export default {
 */
 
 .word-tile[data-ghost='true'] {
+  box-shadow: none;
   background-color: transparent;
-  border-color: transparent;
-  border-left-color: #fff;
   width: 3em;
 }
 .word-tile[data-ghost='true']:first-child {
-  border-left-color: #ddd;
+  border-left-color: red;
 }
-.word-tile {
-  border-top: 0;
-  border-bottom: 0;
-  border-right: 5px solid transparent;
-  border-left: 5px solid #fff;
+.slot::before {
+  content: '';
+  display: block;
+  background: #999;
+  width: 0px;
+  border-radius: 2px;
+  height: 100%;
+  margin: 0 0;
+  transition: margin .1s ease-in;
 }
-.word-tile.over {
-  border-left: 5px solid black !important;
+.slot.over::before {
+  width: 3px;
+  margin: 0 .25em;
 }
 .fridge .dragging {
   opacity: .25;
@@ -322,6 +349,8 @@ export default {
   grid-template-columns: 1fr 2fr 1fr auto;
 }
 .fridge {
+  border-top: 2px solid #ccc;
+  padding-top: 20px;
   margin-top: 50px;
   overflow-x: auto;
   padding-bottom: 3px;
@@ -333,6 +362,11 @@ export default {
 .translation {
   margin: 20px;
   font-size: 26px;
+}
+
+.over * {
+  pointer-events: none;
+  /* https://stackoverflow.com/a/18582960/440172 */
 }
 
 @media (max-width: 800px){
