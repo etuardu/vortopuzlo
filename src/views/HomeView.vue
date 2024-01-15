@@ -287,7 +287,7 @@ export default {
   background: #ddd;
   margin: .1em;
   border-radius: 4px;
-  box-shadow: 0 4px 0 #ccc;
+  /* box-shadow: 0 4px 0 #ccc; */
 }
 
 .slot {
@@ -364,7 +364,8 @@ export default {
   font-size: 26px;
 }
 
-.over * {
+.over *,
+.slot[data-ghost='true'] * {
   pointer-events: none;
   /* https://stackoverflow.com/a/18582960/440172 */
 }
