@@ -25,10 +25,10 @@
         class="slot"
         v-for="(tile, index) in [ ...fridge, { value: '' } ]"
         :key="`${tile.value}-${index}`"
+        :data-ghost="!tile.value"
       >
         <div
           class="tile word-tile"
-          :data-ghost="!tile.value"
           :draggable="!!tile.value"
           :data-value="tile.value"
           :data-index="index"
@@ -312,13 +312,13 @@ export default {
 }
 */
 
-.word-tile[data-ghost='true'] {
+.slot[data-ghost='true'] .word-tile {
   box-shadow: none;
   background-color: transparent;
   width: 3em;
 }
-.word-tile[data-ghost='true']:first-child {
-  border-left-color: red;
+.slot[data-ghost='true']:first-child::before {
+  width: 3px;
 }
 .slot::before {
   content: '';
