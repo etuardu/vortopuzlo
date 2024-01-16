@@ -3,12 +3,10 @@
     <div class="cupboard" ref="cupboard">
       <div
         class="drawer"
-        v-for="type in ['prefix', 'root', 'suffix', 'ending']"
-        :key="type"
       >
         <div
           class="tile"
-          v-for="tile in indexed_tiles_by_type[type]"
+          v-for="tile in sorted_tiles"
           :key="tile.value"
           draggable="true"
           :data-value="tile.value"
@@ -42,7 +40,18 @@
       </div>
     </div>
     <div class="translation">
-      {{ translation }}
+      <template v-if="fridge_word">
+        🇮🇹
+        <template v-if="translation">
+          {{ translation }}
+        </template>
+        <template v-else>
+          <i>Traduzione non disponibile</i>
+        </template>
+      </template>
+      <template v-else>
+        <i>Trascina una particella per iniziare</i>
+      </template>
     </div>
   </div>
 </template>
@@ -98,16 +107,25 @@ export default {
     ],
   }},
   computed: {
-    indexed_tiles_by_type() {
-      const ret = {}
-      for (let i=0; i<this.tiles.length; i++) {
-        const tile = this.tiles[i]
-        ret[tile.type] = [
-          ...(ret[tile.type] ?? []),
-          { index: i, ...tile }
-        ]
+    sorted_tiles() {
+      // sort by type and then alphabetically.
+      // An 'index' prop is added to reference the position
+      // of the element in this.tiles
+      const type_order = {
+        ending: 0,
+        prefix: 1,
+        suffix: 2,
+        root: 3,
       }
-      return ret
+      return this.tiles.map((t, i) => ({
+        index: i,
+        ...t
+      })).toSorted(
+        (a, b) => {
+          return type_order[a.type] - type_order[b.type]
+          || a.value.localeCompare(b.value)
+        }
+      )
     },
     fridge_word() {
       return this.fridge.map(t => t.value).join("'")
@@ -280,6 +298,11 @@ export default {
 </script>
 <style>
 
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
 .tile {
   display: inline-block;
   text-transform: uppercase;
@@ -347,42 +370,31 @@ export default {
   max-height: 50vh;
 }
 .cupboard {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr auto;
+  padding: 25px;
+  background: var(--cream);
 }
 .fridge {
-  border-top: 2px solid #ccc;
   padding-top: 20px;
   margin-top: 50px;
   overflow-x: auto;
   padding-bottom: 3px;
   display: flex;
-}
-.cupboard, .fridge {
   margin: 20px;
 }
 .translation {
   margin: 20px;
+  margin-left: 30px;
   font-size: 26px;
+  font-family: "Roboto Condensed", sans-serif;
+}
+.translation i {
+  opacity: .25;
 }
 
 .over *,
 .slot[data-ghost='true'] * {
   pointer-events: none;
   /* https://stackoverflow.com/a/18582960/440172 */
-}
-
-@media (max-width: 800px){
-  .cupboard {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, auto);
-    gap: 5px;
-  }
-  .drawer {
-    overflow-y: initial;
-    overflow-x: auto;
-    display: flex;
-  }
 }
 
 :root {
