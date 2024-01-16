@@ -12,6 +12,7 @@
           :key="tile.value"
           draggable="true"
           :data-value="tile.value"
+          :data-type="tile.type"
           :data-index="tile.index"
           :data-explanation="tile.it"
           :title="tile.it"
@@ -31,6 +32,7 @@
           class="tile word-tile"
           :draggable="!!tile.value"
           :data-value="tile.value"
+          :data-type="tile.type"
           :data-index="index"
           :data-explanation="tile.it"
           :title="tile.it"
@@ -276,7 +278,7 @@ export default {
   }
 }
 </script>
-<style scoped>
+<style>
 
 .tile {
   display: inline-block;
@@ -382,4 +384,29 @@ export default {
     display: flex;
   }
 }
+
+:root {
+  --red: #c1384a;
+  --orange: #dc9136;
+  --blue: #4c8694;
+  --green: #64b39e;
+  --black: #3a3531;
+  --cream: #f8f2e2;
+  --white: #fff;
+}
+
+.tile[data-type="prefix"] { background-color: var(--green); }
+.tile[data-type="suffix"] { background-color: var(--orange); }
+.tile[data-type="ending"] { background-color: var(--red); }
+.tile[data-type="root"] { background-color: var(--blue); }
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap');
+.tile {
+  color: var(--white);
+  font-family: "Roboto Condensed", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
+}
+
 </style>
