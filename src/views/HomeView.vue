@@ -13,7 +13,6 @@
           :data-type="tile.type"
           :data-index="tile.index"
           :data-explanation="tile.it"
-          :title="tile.it"
         >
           {{ tile.value }}
         </div>
@@ -33,7 +32,6 @@
           :data-type="tile.type"
           :data-index="index"
           :data-explanation="tile.it"
-          :title="tile.it"
         >
           {{ tile.value || '&nbsp;' }}
         </div>
@@ -152,6 +150,15 @@ export default {
     const fridge_el = this.$refs['fridge']
     const cupboard_el = this.$refs['cupboard']
     const that = this
+
+    document.documentElement.addEventListener('mousemove', e => {
+      const tile_el = e.target.closest('.tile')
+      if (!tile_el) return
+      const {x, y, height } = tile_el.getBoundingClientRect()
+      const offset = 10; // px
+      document.documentElement.style.setProperty('--mouse-x', `${x+offset-document.documentElement.scrollLeft}px`);
+      document.documentElement.style.setProperty('--mouse-y', `${y+height-offset+document.documentElement.scrollTop}px`);
+    })
 
     fridge_el.addEventListener('dragenter', e => {
       const slot_el = e.target.closest('.slot')
@@ -307,7 +314,6 @@ body, html {
   display: inline-block;
   text-transform: uppercase;
   font-size: 24px;
-  position: relative;
   padding: .5em;
   background: #ddd;
   margin: .1em;
@@ -320,22 +326,19 @@ body, html {
 }
 
 
-/*
 .tile:not(.dragging):not([data-ghost='true']):hover::after {
   position: absolute;
   content: attr(data-explanation);
   display: block;
-  height: fit-content;
   text-transform: initial;
   font-size: initial;
-  border: 1px solid black;
-  background: #fff;
+  background: var(--black);
+  color: var(--cream);
   z-index: 99;
-  top: calc(100% - .5em);
-  left: .5em;
   padding: .5em;
+  left: var(--mouse-x);
+  top: var(--mouse-y);
 }
-*/
 
 .slot[data-ghost='true'] {
   flex: 1;
