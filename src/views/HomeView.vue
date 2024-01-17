@@ -1,29 +1,10 @@
 <template>
   <div>
-    <div class="cupboard" ref="cupboard">
-      <div
-        class="drawer"
-      >
-        <VTile
-          v-for="(tile, index) in tiles"
-          :tile="tile"
-          :index="index"
-          drag-effect="copy"
-          :key="tile.value"
-        >
-        </VTile>
-      </div>
-    </div>
+    <VCupboard
+      :tiles="tiles"
+      @dropped="onCupboardDropped"
+    ></VCupboard>
     <div class="fridge" ref="fridge">
-      <!--
-      <div
-        class="slot"
-        v-for="(tile, index) in [ ...fridge, { value: '' } ]"
-        :key="`${tile.value}-${index}`"
-        :data-ghost="!tile.value"
-        :data-index="index"
-      >
-      -->
       <VSlot
         v-for="(tile, index) in [ ...fridge, { value: '' } ]"
         :key="`${tile.value}-${index}`"
@@ -60,10 +41,12 @@
 <script>
 import VTile from '@/components/VTile.vue'
 import VSlot from '@/components/VSlot.vue'
+import VCupboard from '@/components/VCupboard.vue'
 export default {
   components: {
     VTile,
     VSlot,
+    VCupboard,
   },
   data() { return {
     dragging_index: null,
@@ -137,36 +120,18 @@ export default {
       ))
     }
   },
-  mounted() {
-    const cupboard_el = this.$refs['cupboard']
-    const that = this
-
-    cupboard_el.addEventListener('dragover', e => {
-      e.preventDefault()
-    })
-    cupboard_el.addEventListener('drop', e => {
-      // tile dropped from the fridge into the cupboard:
-      // remove the tile
-
+  methods: {
+    onCupboardDropped(effect, index) {
+      // fridge tile at <index> dropped into
+      // the cupboard: remove the item
       this.dragging_index = null
-
-      let dragData
-      try {
-        dragData = JSON.parse(
-          e.dataTransfer.getData("text")
-        )
-      } catch {
-        return
-      }
-      if (dragData.effect === 'move') {
-        that.fridge.splice(
-          dragData.index,
+      if (effect === 'move') {
+        this.fridge.splice(
+          index,
           1
         )
       }
-    })
-  },
-  methods: {
+    },
     onSlotDropped(effect, from_index, to_index) {
       this.dragging_index = null
       if (effect === 'move') {
@@ -238,20 +203,6 @@ body, html {
   padding: 0;
 }
 
-.fridge .dragging {
-  opacity: .25;
-}
-.drawer .tile {
-  margin: .1em;
-}
-.drawer {
-  overflow-y: scroll;
-  max-height: 50vh;
-}
-.cupboard {
-  padding: 25px;
-  background: var(--cream);
-}
 .fridge {
   padding-top: 20px;
   margin-top: 50px;
