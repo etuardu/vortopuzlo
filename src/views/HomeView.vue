@@ -4,23 +4,13 @@
       :tiles="tiles"
       @dropped="onCupboardDropped"
     ></VCupboard>
-    <div class="fridge" ref="fridge">
-      <VSlot
-        v-for="(tile, index) in [ ...fridge, { value: '' } ]"
-        :key="`${tile.value}-${index}`"
-        :index="index"
-        :ghost="!tile.value"
-        :dragging_index="dragging_index"
-        @dropped="onSlotDropped"
-      >
-        <VTile
-          :tile="tile"
-          :index="index"
-          drag-effect="move"
-          @dragging="(i) => dragging_index = i"
-        ></VTile>
-      </VSlot>
-    </div>
+   <VFridge
+    :fridge="fridge"
+    :dragging_index="dragging_index"
+    @dragging="(i) => dragging_index = i"
+    @dropped="onFridgeDropped"
+   >
+   </VFridge>
     <div class="translation">
       <template v-if="fridge_word">
         🇮🇹
@@ -42,11 +32,13 @@
 import VTile from '@/components/VTile.vue'
 import VSlot from '@/components/VSlot.vue'
 import VCupboard from '@/components/VCupboard.vue'
+import VFridge from '@/components/VFridge.vue'
 export default {
   components: {
     VTile,
     VSlot,
     VCupboard,
+    VFridge,
   },
   data() { return {
     dragging_index: null,
@@ -132,7 +124,7 @@ export default {
         )
       }
     },
-    onSlotDropped(effect, from_index, to_index) {
+    onFridgeDropped(effect, from_index, to_index) {
       this.dragging_index = null
       if (effect === 'move') {
         this.move_array_element(
