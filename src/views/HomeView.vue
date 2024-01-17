@@ -205,7 +205,7 @@ export default {
       } catch {
         return
       }
-      if (dragData.action === 'move') {
+      if (dragData.effect === 'move') {
         that.fridge.splice(
           dragData.index,
           1
@@ -263,10 +263,6 @@ body, html {
 
 .slot[data-ghost='true'] {
   flex: 1;
-}
-.slot[data-ghost='true'] .word-tile {
-  box-shadow: none;
-  background-color: transparent;
 }
 .slot[data-ghost='true']:first-child::before {
   width: 3px;

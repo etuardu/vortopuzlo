@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['tile', tile.type]"
+    :class="['tile', tile.type || 'ghost']"
     :draggable="!!tile.value"
     @mouseover="showTooltip"
     @mouseout="hideTooltip"
@@ -8,7 +8,7 @@
     @dragend="dragend"
     ref="tile"
   >
-    {{ tile.value }}
+    {{ tile.value || '&nbsp;' }}
     <div
       v-if="tooltip"
       class="tooltip"
@@ -70,4 +70,6 @@ export default {
 .tile.suffix { background-color: var(--orange); }
 .tile.ending { background-color: var(--red); }
 .tile.root { background-color: var(--blue); }
+
+.tile.ghost { background: transparent; }
 </style>
