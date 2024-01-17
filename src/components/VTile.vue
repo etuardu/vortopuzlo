@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="`tile ${tile.type || ''} ${dragging ? 'dragging' : ''}`"
+    :class="classList"
     :draggable="!!tile.value"
     @mouseover="showTooltip"
     @mouseout="hideTooltip"
@@ -10,8 +10,8 @@
   >
     {{ tile.value || '&nbsp;' }}
     <div
-      v-if="tooltip"
-      class="tooltip"
+      v-if="!dragging"
+      :class="{ tooltip: true, tooltipVisible: tooltipVisible }"
       :style="{ top: `${tooltipTop}px` }"
     >{{ tile.it }}</div>
   </div>
@@ -22,19 +22,29 @@ export default {
     'tile', 'index', 'drag-effect'
   ],
   data: () => ({
-    tooltip: false,
+    tooltipVisible: false,
     tooltipYOffset: -5,
     dragging: false,
   }),
+  computed: {
+    classList() {
+      const list = ['tile']
+      if (this.tile.type) list.push(this.tile.type)
+      if (
+        this.dragging && this.dragEffect === 'move'
+      ) list.push('dragging')
+      return list.join(' ')
+    },
+  },
   methods: {
     showTooltip() {
       if (!this.tile.value) return
       const { y, height } = this.$refs['tile'].getBoundingClientRect()
       this.tooltipTop = y + window.scrollY + this.tooltipYOffset + height
-      this.tooltip = true
+      this.tooltipVisible = true
     },
     hideTooltip() {
-      this.tooltip = false
+      this.tooltipVisible = false
     },
     dragstart(e) {
       this.hideTooltip()
@@ -64,6 +74,9 @@ export default {
   background: var(--black);
   color: var(--cream);
   padding: .5em;
+  opacity: 0;
+  transition: all .25s;
+  margin-top: -10px;
 }
 .tooltip::after {
   position: absolute;
@@ -74,6 +87,10 @@ export default {
   border: 8px solid transparent;
   border-bottom-color: var(--black);
   top: -14px;
+}
+.tooltip.tooltipVisible {
+  opacity: 1;
+  margin-top: 0;
 }
 .tile {
   display: inline-block;
