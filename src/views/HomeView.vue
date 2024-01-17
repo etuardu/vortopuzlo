@@ -337,10 +337,12 @@ body, html {
 }
 */
 
+.slot[data-ghost='true'] {
+  flex: 1;
+}
 .slot[data-ghost='true'] .word-tile {
   box-shadow: none;
   background-color: transparent;
-  width: 3em;
 }
 .slot[data-ghost='true']:first-child::before {
   width: 3px;
