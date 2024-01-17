@@ -15,6 +15,7 @@
       </div>
     </div>
     <div class="fridge" ref="fridge">
+      <!--
       <div
         class="slot"
         v-for="(tile, index) in [ ...fridge, { value: '' } ]"
@@ -22,12 +23,22 @@
         :data-ghost="!tile.value"
         :data-index="index"
       >
+      -->
+      <VSlot
+        v-for="(tile, index) in [ ...fridge, { value: '' } ]"
+        :key="`${tile.value}-${index}`"
+        :index="index"
+        :ghost="!tile.value"
+        :dragging_index="dragging_index"
+        @dropped="onSlotDropped"
+      >
         <VTile
           :tile="tile"
           :index="index"
           drag-effect="move"
+          @dragging="(i) => dragging_index = i"
         ></VTile>
-      </div>
+      </VSlot>
     </div>
     <div class="translation">
       <template v-if="fridge_word">
@@ -43,16 +54,19 @@
         <i>Trascina una particella per iniziare</i>
       </template>
     </div>
+    {{ dragging_index }}
   </div>
 </template>
 <script>
 import VTile from '@/components/VTile.vue'
+import VSlot from '@/components/VSlot.vue'
 export default {
   components: {
-    VTile
+    VTile,
+    VSlot,
   },
   data() { return {
-    current_drag_tile: null,
+    dragging_index: null,
     tiles: [
     /*
       { type: 'prefix', value: 'mal', it: 'Contrario' },
@@ -124,71 +138,8 @@ export default {
     }
   },
   mounted() {
-    const fridge_el = this.$refs['fridge']
     const cupboard_el = this.$refs['cupboard']
     const that = this
-
-    fridge_el.addEventListener('dragenter', e => {
-      const slot_el = e.target.closest('.slot')
-      if (!slot_el) return
-      console.log("dragenter slot", slot_el.innerText)
-      const tile_el = slot_el.querySelector('.tile')
-      if (tile_el === that.current_drag_tile) return
-      slot_el.classList.add('over')
-    })
-
-    fridge_el.addEventListener('dragleave', e => {
-      const slot_el = e.target.closest('.slot')
-      if (!slot_el) return
-      console.log("dragleave slot", slot_el.innerText)
-      const tile_el = slot_el.querySelector('.tile')
-      if (tile_el === that.current_drag_tile) return
-      slot_el.classList.remove('over')
-    })
-
-    fridge_el.addEventListener('dragover', e => {
-      e.preventDefault()
-    })
-
-    fridge_el.addEventListener('drop', e => {
-      console.log(e.dataTransfer.getData("text"))
-      const slot_el = e.target.closest('.slot')
-      if (!slot_el) return
-      slot_el.classList.remove('over')
-
-      const index = slot_el.dataset.index
-
-      let dragData
-      try {
-        dragData = JSON.parse(
-          e.dataTransfer.getData("text")
-        )
-      } catch {
-        return
-      }
-
-      console.log(dragData)
-
-      if (dragData.effect === 'move') {
-        that.move_array_element(
-          that.fridge,
-          dragData.index,
-          index
-        )
-      }
-
-      if (dragData.effect === 'copy') {
-        console.log(
-          index,
-          that.tiles[dragData.index]
-        )
-        that.fridge.splice(
-          index,
-          0,
-          that.tiles[dragData.index]
-        )
-      }
-    })
 
     cupboard_el.addEventListener('dragover', e => {
       e.preventDefault()
@@ -196,6 +147,8 @@ export default {
     cupboard_el.addEventListener('drop', e => {
       // tile dropped from the fridge into the cupboard:
       // remove the tile
+
+      this.dragging_index = null
 
       let dragData
       try {
@@ -214,6 +167,23 @@ export default {
     })
   },
   methods: {
+    onSlotDropped(effect, from_index, to_index) {
+      this.dragging_index = null
+      if (effect === 'move') {
+        this.move_array_element(
+          this.fridge,
+          from_index,
+          to_index,
+        )
+      }
+      if (effect === 'copy') {
+        this.fridge.splice(
+          to_index,
+          0,
+          this.tiles[from_index]
+        )
+      }
+    },
     sort_tiles(tiles) {
       // sort by type and then by value alphabetically.
       const type_order = {
@@ -251,36 +221,23 @@ export default {
 }
 </script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap');
+
+:root {
+  --red: #c1384a;
+  --orange: #dc9136;
+  --blue: #4c8694;
+  --green: #64b39e;
+  --black: #3a3531;
+  --cream: #f8f2e2;
+  --white: #fff;
+}
 
 body, html {
   margin: 0;
   padding: 0;
 }
 
-.slot {
-  display: flex;
-}
-
-.slot[data-ghost='true'] {
-  flex: 1;
-}
-.slot[data-ghost='true']:first-child::before {
-  width: 3px;
-}
-.slot::before {
-  content: '';
-  display: block;
-  background: #999;
-  width: 0px;
-  border-radius: 2px;
-  height: 100%;
-  margin: 0 0;
-  transition: margin .1s ease-in;
-}
-.slot.over::before {
-  width: 3px;
-  margin: 0 .25em;
-}
 .fridge .dragging {
   opacity: .25;
 }
@@ -311,32 +268,6 @@ body, html {
 }
 .translation i {
   opacity: .25;
-}
-
-.over *,
-.slot[data-ghost='true'] * {
-  pointer-events: none;
-  /* https://stackoverflow.com/a/18582960/440172 */
-}
-
-:root {
-  --red: #c1384a;
-  --orange: #dc9136;
-  --blue: #4c8694;
-  --green: #64b39e;
-  --black: #3a3531;
-  --cream: #f8f2e2;
-  --white: #fff;
-}
-
-
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap');
-.tile {
-  color: var(--white);
-  font-family: "Roboto Condensed", sans-serif;
-  font-optical-sizing: auto;
-  font-weight: 700;
-  font-style: normal;
 }
 
 </style>

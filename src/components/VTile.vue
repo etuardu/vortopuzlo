@@ -42,6 +42,10 @@ export default {
         effect: this.dragEffect,
         index: this.index,
       }));
+      this.$emit('dragging', this.index)
+    },
+    dragend() {
+      this.$emit('dragging', null)
     }
   }
 }
@@ -65,6 +69,11 @@ export default {
   background: #ddd;
   margin: .1em;
   border-radius: 4px;
+  color: var(--white);
+  font-family: "Roboto Condensed", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 700;
+  font-style: normal;
 }
 .tile.prefix { background-color: var(--green); }
 .tile.suffix { background-color: var(--orange); }
