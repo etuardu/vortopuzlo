@@ -4,18 +4,14 @@
       <div
         class="drawer"
       >
-        <div
-          class="tile"
-          v-for="tile in sorted_tiles"
+        <VTile
+          v-for="(tile, index) in tiles"
+          :tile="tile"
+          :index="index"
+          drag-effect="copy"
           :key="tile.value"
-          draggable="true"
-          :data-value="tile.value"
-          :data-type="tile.type"
-          :data-index="tile.index"
-          :data-explanation="tile.it"
         >
-          {{ tile.value }}
-        </div>
+        </VTile>
       </div>
     </div>
     <div class="fridge" ref="fridge">
@@ -24,17 +20,13 @@
         v-for="(tile, index) in [ ...fridge, { value: '' } ]"
         :key="`${tile.value}-${index}`"
         :data-ghost="!tile.value"
+        :data-index="index"
       >
-        <div
-          class="tile word-tile"
-          :draggable="!!tile.value"
-          :data-value="tile.value"
-          :data-type="tile.type"
-          :data-index="index"
-          :data-explanation="tile.it"
-        >
-          {{ tile.value || '&nbsp;' }}
-        </div>
+        <VTile
+          :tile="tile"
+          :index="index"
+          drag-effect="move"
+        ></VTile>
       </div>
     </div>
     <div class="translation">
@@ -54,7 +46,11 @@
   </div>
 </template>
 <script>
+import VTile from '@/components/VTile.vue'
 export default {
+  components: {
+    VTile
+  },
   data() { return {
     current_drag_tile: null,
     tiles: [
@@ -105,26 +101,6 @@ export default {
     ],
   }},
   computed: {
-    sorted_tiles() {
-      // sort by type and then alphabetically.
-      // An 'index' prop is added to reference the position
-      // of the element in this.tiles
-      const type_order = {
-        ending: 0,
-        prefix: 1,
-        suffix: 2,
-        root: 3,
-      }
-      return this.tiles.map((t, i) => ({
-        index: i,
-        ...t
-      })).toSorted(
-        (a, b) => {
-          return type_order[a.type] - type_order[b.type]
-          || a.value.localeCompare(b.value)
-        }
-      )
-    },
     fridge_word() {
       return this.fridge.map(t => t.value).join("'")
     },
@@ -139,7 +115,8 @@ export default {
       type: {'prefikso': 'prefix', 'sufikso': 'suffix', 'radiko': 'root', 'finaĵo': 'ending'}[i[0]],
       value: i[1],
       it: i[2]
-    }) )
+    }))
+    this.tiles = this.sort_tiles(this.tiles)
     this.dictionary = { it:
       Object.fromEntries((await this.read_gsheet('tradukoj')).slice(
         1 // skip heading
@@ -150,15 +127,6 @@ export default {
     const fridge_el = this.$refs['fridge']
     const cupboard_el = this.$refs['cupboard']
     const that = this
-
-    document.documentElement.addEventListener('mousemove', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      const {x, y, height } = tile_el.getBoundingClientRect()
-      const offset = 10; // px
-      document.documentElement.style.setProperty('--mouse-x', `${x+offset-document.documentElement.scrollLeft}px`);
-      document.documentElement.style.setProperty('--mouse-y', `${y+height-offset+document.documentElement.scrollTop}px`);
-    })
 
     fridge_el.addEventListener('dragenter', e => {
       const slot_el = e.target.closest('.slot')
@@ -182,49 +150,13 @@ export default {
       e.preventDefault()
     })
 
-    fridge_el.addEventListener('dragstart', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      that.current_drag_tile = tile_el
-      console.log(that.current_drag_tile)
-      tile_el.classList.add('dragging')
-      e.dataTransfer.effectAllowed = "move"
-      e.dataTransfer.setData("text", JSON.stringify({
-        action: 'move',
-        index: tile_el.dataset.index,
-      }));
-    })
-
-    fridge_el.addEventListener('dragend', e => {
-      that.current_drag_tile = null
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      tile_el.classList.remove('dragging')
-    })
-
-    cupboard_el.addEventListener('dragstart', e => {
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      tile_el.classList.add('dragging')
-      e.dataTransfer.effectAllowed = "copy"
-      e.dataTransfer.setData("text", JSON.stringify({
-        action: 'add',
-        index: tile_el.dataset.index,
-      }));
-    })
-    cupboard_el.addEventListener('dragend', e => {
-      that.current_drag_tile = null
-      const tile_el = e.target.closest('.tile')
-      if (!tile_el) return
-      tile_el.classList.remove('dragging')
-    })
-
     fridge_el.addEventListener('drop', e => {
+      console.log(e.dataTransfer.getData("text"))
       const slot_el = e.target.closest('.slot')
       if (!slot_el) return
       slot_el.classList.remove('over')
 
-      const tile_el = slot_el.querySelector('.tile')
+      const index = slot_el.dataset.index
 
       let dragData
       try {
@@ -237,21 +169,21 @@ export default {
 
       console.log(dragData)
 
-      if (dragData.action === 'move') {
+      if (dragData.effect === 'move') {
         that.move_array_element(
           that.fridge,
           dragData.index,
-          tile_el.dataset.index
+          index
         )
       }
 
-      if (dragData.action === 'add') {
+      if (dragData.effect === 'copy') {
         console.log(
-          tile_el.dataset.index,
+          index,
           that.tiles[dragData.index]
         )
         that.fridge.splice(
-          tile_el.dataset.index,
+          index,
           0,
           that.tiles[dragData.index]
         )
@@ -282,6 +214,21 @@ export default {
     })
   },
   methods: {
+    sort_tiles(tiles) {
+      // sort by type and then by value alphabetically.
+      const type_order = {
+        ending: 0,
+        prefix: 1,
+        suffix: 2,
+        root: 3,
+      }
+      return tiles.sort(
+        (a, b) => {
+          return type_order[a.type] - type_order[b.type]
+          || a.value.localeCompare(b.value)
+        }
+      )
+    },
     move_array_element(arr, src_i, dst_i) {
       console.log("move", src_i, "to", dst_i)
       if (src_i === dst_i) return
@@ -310,34 +257,8 @@ body, html {
   padding: 0;
 }
 
-.tile {
-  display: inline-block;
-  text-transform: uppercase;
-  font-size: 24px;
-  padding: .5em;
-  background: #ddd;
-  margin: .1em;
-  border-radius: 4px;
-  /* box-shadow: 0 4px 0 #ccc; */
-}
-
 .slot {
   display: flex;
-}
-
-
-.tile:not(.dragging):not([data-ghost='true']):hover::after {
-  position: absolute;
-  content: attr(data-explanation);
-  display: block;
-  text-transform: initial;
-  font-size: initial;
-  background: var(--black);
-  color: var(--cream);
-  z-index: 99;
-  padding: .5em;
-  left: var(--mouse-x);
-  top: var(--mouse-y);
 }
 
 .slot[data-ghost='true'] {
@@ -412,10 +333,6 @@ body, html {
   --white: #fff;
 }
 
-.tile[data-type="prefix"] { background-color: var(--green); }
-.tile[data-type="suffix"] { background-color: var(--orange); }
-.tile[data-type="ending"] { background-color: var(--red); }
-.tile[data-type="root"] { background-color: var(--blue); }
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700&display=swap');
 .tile {
