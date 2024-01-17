@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['tile', tile.type || 'ghost']"
+    :class="`tile ${tile.type || ''} ${dragging ? 'dragging' : ''}`"
     :draggable="!!tile.value"
     @mouseover="showTooltip"
     @mouseout="hideTooltip"
@@ -23,13 +23,14 @@ export default {
   ],
   data: () => ({
     tooltip: false,
-    tooltipYOffset: 10,
+    tooltipYOffset: -5,
+    dragging: false,
   }),
   methods: {
     showTooltip() {
       if (!this.tile.value) return
       const { y, height } = this.$refs['tile'].getBoundingClientRect()
-      this.tooltipTop = y + window.scrollY - this.tooltipYOffset + height
+      this.tooltipTop = y + window.scrollY + this.tooltipYOffset + height
       this.tooltip = true
     },
     hideTooltip() {
@@ -42,9 +43,11 @@ export default {
         effect: this.dragEffect,
         index: this.index,
       }));
+      this.dragging = true
       this.$emit('dragging', this.index)
     },
     dragend() {
+      this.dragging = false
       this.$emit('dragging', null)
     }
   }
@@ -54,6 +57,7 @@ export default {
 .tooltip {
   position: absolute;
   z-index: 99;
+  margin-left: -5px;
   pointer-events: none;
   text-transform: initial;
   font-size: initial;
@@ -61,12 +65,21 @@ export default {
   color: var(--cream);
   padding: .5em;
 }
+.tooltip::after {
+  position: absolute;
+  display: block;
+  content: '';
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-bottom-color: var(--black);
+  top: -14px;
+}
 .tile {
   display: inline-block;
   text-transform: uppercase;
   font-size: 24px;
   padding: .5em;
-  background: #ddd;
   margin: .1em;
   border-radius: 4px;
   color: var(--white);
@@ -79,6 +92,5 @@ export default {
 .tile.suffix { background-color: var(--orange); }
 .tile.ending { background-color: var(--red); }
 .tile.root { background-color: var(--blue); }
-
-.tile.ghost { background: transparent; }
+.dragging { opacity: .25; }
 </style>

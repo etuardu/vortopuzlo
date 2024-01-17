@@ -1,6 +1,11 @@
 <template>
   <div
-    :class="{ slot: true, over: over, ghost: ghost, caret: ghost && index === 0 }"
+    :class="{
+      slot: true,
+      over: over,
+      ghost: ghost,
+      caret: ghost && index === 0,
+    }"
     @dragenter="dragenter"
     @dragleave="dragleave"
     @dragover="(e) => e.preventDefault()"
@@ -28,16 +33,15 @@ export default {
       }
     },
     dragenter() {
-      console.log("dragenter")
       if (this.dragging_index === this.index) return
       this.over = true
     },
     dragleave() {
-      console.log("dragleave")
       this.over = false
     },
     drop(e) {
       e.preventDefault()
+      this.over = false
       const dragData = this.parseDragData(e)
       if (!dragData) return
       this.$emit(

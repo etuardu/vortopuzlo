@@ -25,18 +25,13 @@
         <i>Trascina una particella per iniziare</i>
       </template>
     </div>
-    {{ dragging_index }}
   </div>
 </template>
 <script>
-import VTile from '@/components/VTile.vue'
-import VSlot from '@/components/VSlot.vue'
 import VCupboard from '@/components/VCupboard.vue'
 import VFridge from '@/components/VFridge.vue'
 export default {
   components: {
-    VTile,
-    VSlot,
     VCupboard,
     VFridge,
   },
@@ -195,14 +190,6 @@ body, html {
   padding: 0;
 }
 
-.fridge {
-  padding-top: 20px;
-  margin-top: 50px;
-  overflow-x: auto;
-  padding-bottom: 3px;
-  display: flex;
-  margin: 20px;
-}
 .translation {
   margin: 20px;
   margin-left: 30px;
